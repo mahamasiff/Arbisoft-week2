@@ -6,7 +6,11 @@ from openai import OpenAI
 
 load_dotenv()
 
-DEFAULT_MODEL = "cohere/north-mini-code:free"
+MODELS = {
+    "1": "cohere/north-mini-code:free",
+    "2": "poolside/laguna-xs.2:free",
+    "3": "nvidia/nemotron-3-super-120b-a12b:free",
+}
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
@@ -14,9 +18,20 @@ client = OpenAI(
 )
 
 
+def choose_model() -> str:
+    print("Choose a model:")
+    for key, name in MODELS.items():
+        print(f"  {key}. {name}")
+    while True:
+        choice = input("Enter 1, 2, or 3: ").strip()
+        if choice in MODELS:
+            return MODELS[choice]
+        print("Invalid choice. Please enter 1, 2, or 3.")
+
+
 def chat(model: str) -> None:
     messages = []
-    print(f"Chatting with {model}. Type 'exit' or 'quit' to stop, 'reset' to clear history.\n")
+    print(f"Chatting with {model}. Type 'exit' or 'quit' to stop\n")
 
     while True:
         try:
@@ -30,10 +45,6 @@ def chat(model: str) -> None:
         if user_input.lower() in ("exit", "quit"):
             print("Goodbye!")
             break
-        if user_input.lower() == "reset":
-            messages.clear()
-            print("Conversation history cleared.\n")
-            continue
 
         messages.append({"role": "user", "content": user_input})
 
@@ -59,8 +70,8 @@ def chat(model: str) -> None:
 
 
 if __name__ == "__main__":
-    model = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_MODEL
     if not os.environ.get("OPENROUTER_API_KEY"):
         print("Error: OPENROUTER_API_KEY not set in environment or .env file.")
         sys.exit(1)
+    model = choose_model()
     chat(model)
